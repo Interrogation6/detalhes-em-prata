@@ -4,7 +4,7 @@ import type { ProductWithSizes } from "./types"
 
 // Buscar todos os produtos
 export async function getAllProducts(): Promise<ProductWithSizes[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: products, error } = await supabase
     .from("products")
@@ -44,7 +44,7 @@ export async function getAllProductsClient(): Promise<ProductWithSizes[]> {
 
 // Buscar produto por ID
 export async function getProductById(id: string): Promise<ProductWithSizes | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: product, error } = await supabase
     .from("products")
@@ -65,7 +65,7 @@ export async function getProductById(id: string): Promise<ProductWithSizes | nul
 
 // Buscar produto por SKU (para compatibilidade com código existente)
 export async function getProductBySku(sku: string): Promise<ProductWithSizes | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: product, error } = await supabase
     .from("products")
@@ -86,7 +86,7 @@ export async function getProductBySku(sku: string): Promise<ProductWithSizes | n
 
 // Buscar produtos por categoria
 export async function getProductsByCategory(category: string): Promise<ProductWithSizes[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: products, error } = await supabase
     .from("products")
@@ -128,7 +128,7 @@ export async function getProductsByCategoryClient(category: string): Promise<Pro
 
 // Buscar produtos em promoção
 export async function getProductsOnSale(): Promise<ProductWithSizes[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: products, error } = await supabase
     .from("products")
@@ -149,7 +149,7 @@ export async function getProductsOnSale(): Promise<ProductWithSizes[]> {
 
 // Buscar produtos por termo de pesquisa
 export async function searchProducts(searchTerm: string): Promise<ProductWithSizes[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: products, error } = await supabase
     .from("products")
@@ -214,7 +214,7 @@ export function hasProductSizes(product: ProductWithSizes): boolean {
 
 // Obter categorias únicas
 export async function getCategories(): Promise<string[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: categories, error } = await supabase.from("products").select("category").order("category")
 
