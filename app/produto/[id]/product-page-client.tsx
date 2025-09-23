@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCart } from "@/contexts/cart-context"
 import { useAdmin } from "@/contexts/admin-context"
 import type { ProductWithSizes } from "@/lib/supabase/types"
-import { getTotalStock, getStockForSize, hasProductSizes, getProductById } from "@/lib/supabase/products"
+import { getTotalStock, getStockForSize, hasProductSizes } from "@/lib/supabase/products"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { AdminProductEditModal } from "@/components/admin-product-edit-modal"
@@ -77,7 +78,21 @@ export function ProductPageClient({ product: initialProduct }: ProductPageClient
 
   const handleProductUpdated = async () => {
     try {
-      const updatedProduct = await getProductById(product.id)
+      const supabase = createClient()
+      const { data: updatedProduct, error } = await supabase
+        .from("products")
+        .select(`
+          *,
+          product_sizes (*)
+        `)
+        .eq("id", product.id)
+        .single()
+
+      if (error) {
+        console.error("Erro ao recarregar produto:", error)
+        return
+      }
+
       if (updatedProduct) {
         setProduct(updatedProduct)
       }
