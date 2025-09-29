@@ -261,19 +261,28 @@ export async function updateProduct(
 ): Promise<boolean> {
   const supabase = createBrowserClient()
 
-  const { error } = await supabase
+  console.log("[v0] Starting product update with data:", { productId, updates })
+
+  const { data, error } = await supabase
     .from("products")
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
     })
     .eq("id", productId)
+    .select() // Added select() to return the updated row and verify the update
 
   if (error) {
-    console.error("Erro ao atualizar produto:", error)
+    console.error("[v0] Supabase error details:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    })
     return false
   }
 
+  console.log("[v0] Product updated successfully:", data)
   return true
 }
 

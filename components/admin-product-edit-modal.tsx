@@ -194,6 +194,8 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         material: productData.material,
       })
 
+      console.log("[v0] Update result:", success)
+
       if (success) {
         toast({
           title: "Produto atualizado",
@@ -202,13 +204,13 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         onProductUpdated()
         onClose()
       } else {
-        throw new Error("Failed to update product")
+        throw new Error("Update returned false - check console for Supabase error details")
       }
     } catch (error) {
-      console.error("Erro ao salvar produto:", error)
+      console.error("[v0] Error in handleSaveProduct:", error)
       toast({
         title: "Erro ao salvar produto",
-        description: "Verifique suas permissões ou tente novamente",
+        description: "Verifique o console para detalhes do erro",
         variant: "destructive",
       })
     } finally {
