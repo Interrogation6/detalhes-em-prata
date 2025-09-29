@@ -204,13 +204,17 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         onProductUpdated()
         onClose()
       } else {
-        throw new Error("Update returned false - check console for Supabase error details")
+        toast({
+          title: "Erro ao salvar produto",
+          description: "Você precisa estar logado para editar produtos. Verifique o console para mais detalhes.",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("[v0] Error in handleSaveProduct:", error)
       toast({
         title: "Erro ao salvar produto",
-        description: "Verifique o console para detalhes do erro",
+        description: "Ocorreu um erro inesperado. Verifique o console para detalhes.",
         variant: "destructive",
       })
     } finally {

@@ -263,6 +263,21 @@ export async function updateProduct(
 
   console.log("[v0] Starting product update with data:", { productId, updates })
 
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error("[v0] Authentication error - user must be logged in to update products:", {
+      authError: authError?.message,
+      hasUser: !!user,
+    })
+    return false
+  }
+
+  console.log("[v0] User authenticated:", user.email)
+
   const { data, error } = await supabase
     .from("products")
     .update({
@@ -270,7 +285,7 @@ export async function updateProduct(
       updated_at: new Date().toISOString(),
     })
     .eq("id", productId)
-    .select() // Added select() to return the updated row and verify the update
+    .select()
 
   if (error) {
     console.error("[v0] Supabase error details:", {
@@ -283,7 +298,7 @@ export async function updateProduct(
   }
 
   console.log("[v0] Product updated successfully:", data)
-  return true
+  return data && data.length > 0
 }
 
 // Atualizar estoque de um tamanho específico
