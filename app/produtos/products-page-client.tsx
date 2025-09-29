@@ -28,29 +28,41 @@ export function ProductsPageClient({ initialProducts, categories }: ProductsPage
 
   useEffect(() => {
     const loadInitialData = async () => {
+      console.log("[v0] loadInitialData started", { searchParams: searchParams.toString() })
       const searchQuery = searchParams.get("busca")
       const categoryQuery = searchParams.get("categoria")
+      console.log("[v0] Query params:", { searchQuery, categoryQuery })
 
       if (searchQuery) {
+        console.log("[v0] Starting search for:", searchQuery)
         setIsLoading(true)
         try {
+          console.log("[v0] Calling searchProductsClient...")
           const results = await searchProductsClient(searchQuery)
+          console.log("[v0] Search results received:", results.length)
           setProducts(results)
         } catch (error) {
-          console.error("Erro na busca:", error)
+          console.error("[v0] Erro na busca:", error)
         } finally {
+          console.log("[v0] Search completed, setting loading to false")
           setIsLoading(false)
         }
       } else if (categoryQuery && categoryQuery !== "all") {
+        console.log("[v0] Starting category filter for:", categoryQuery)
         setIsLoading(true)
         try {
+          console.log("[v0] Calling getProductsByCategoryClient...")
           const results = await getProductsByCategoryClient(categoryQuery)
+          console.log("[v0] Category results received:", results.length)
           setProducts(results)
         } catch (error) {
-          console.error("Erro ao filtrar por categoria:", error)
+          console.error("[v0] Erro ao filtrar por categoria:", error)
         } finally {
+          console.log("[v0] Category filter completed, setting loading to false")
           setIsLoading(false)
         }
+      } else {
+        console.log("[v0] No search or category query, using initial products")
       }
     }
 
@@ -103,38 +115,50 @@ export function ProductsPageClient({ initialProducts, categories }: ProductsPage
 
   // Busca por termo
   const handleSearch = async (term: string) => {
+    console.log("[v0] handleSearch called with term:", term)
     setSearchTerm(term)
     if (term.trim() === "") {
+      console.log("[v0] Empty search term, resetting to initial products")
       setProducts(initialProducts)
       return
     }
 
+    console.log("[v0] Starting search...")
     setIsLoading(true)
     try {
+      console.log("[v0] Calling searchProductsClient...")
       const results = await searchProductsClient(term)
+      console.log("[v0] Search results:", results.length)
       setProducts(results)
     } catch (error) {
-      console.error("Erro na busca:", error)
+      console.error("[v0] Erro na busca:", error)
     } finally {
+      console.log("[v0] Search completed")
       setIsLoading(false)
     }
   }
 
   // Filtrar por categoria
   const handleCategoryFilter = async (category: string) => {
+    console.log("[v0] handleCategoryFilter called with:", category)
     setSelectedCategory(category)
     if (category === "all") {
+      console.log("[v0] Category 'all' selected, resetting to initial products")
       setProducts(initialProducts)
       return
     }
 
+    console.log("[v0] Starting category filter...")
     setIsLoading(true)
     try {
+      console.log("[v0] Calling getProductsByCategoryClient...")
       const results = await getProductsByCategoryClient(category)
+      console.log("[v0] Category results:", results.length)
       setProducts(results)
     } catch (error) {
-      console.error("Erro ao filtrar por categoria:", error)
+      console.error("[v0] Erro ao filtrar por categoria:", error)
     } finally {
+      console.log("[v0] Category filter completed")
       setIsLoading(false)
     }
   }

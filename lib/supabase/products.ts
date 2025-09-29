@@ -107,23 +107,34 @@ export async function getProductsByCategory(category: string): Promise<ProductWi
 
 // Versão client-side para buscar produtos por categoria
 export async function getProductsByCategoryClient(category: string): Promise<ProductWithSizes[]> {
-  const supabase = createBrowserClient()
+  console.log("[v0] getProductsByCategoryClient called with category:", category)
 
-  const { data: products, error } = await supabase
-    .from("products")
-    .select(`
+  try {
+    console.log("[v0] Creating Supabase browser client...")
+    const supabase = createBrowserClient()
+    console.log("[v0] Supabase client created successfully")
+
+    console.log("[v0] Executing query...")
+    const { data: products, error } = await supabase
+      .from("products")
+      .select(`
       *,
       product_sizes (*)
     `)
-    .eq("category", category)
-    .order("created_at", { ascending: false })
+      .eq("category", category)
+      .order("created_at", { ascending: false })
 
-  if (error) {
-    console.error("Erro ao buscar produtos por categoria:", error)
+    if (error) {
+      console.error("[v0] Supabase query error:", error)
+      return []
+    }
+
+    console.log("[v0] Query successful, products found:", products?.length || 0)
+    return products || []
+  } catch (error) {
+    console.error("[v0] Exception in getProductsByCategoryClient:", error)
     return []
   }
-
-  return products || []
 }
 
 // Buscar produtos em promoção
@@ -170,23 +181,34 @@ export async function searchProducts(searchTerm: string): Promise<ProductWithSiz
 
 // Versão client-side para pesquisar produtos
 export async function searchProductsClient(searchTerm: string): Promise<ProductWithSizes[]> {
-  const supabase = createBrowserClient()
+  console.log("[v0] searchProductsClient called with term:", searchTerm)
 
-  const { data: products, error } = await supabase
-    .from("products")
-    .select(`
+  try {
+    console.log("[v0] Creating Supabase browser client...")
+    const supabase = createBrowserClient()
+    console.log("[v0] Supabase client created successfully")
+
+    console.log("[v0] Executing search query...")
+    const { data: products, error } = await supabase
+      .from("products")
+      .select(`
       *,
       product_sizes (*)
     `)
-    .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`)
-    .order("created_at", { ascending: false })
+      .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`)
+      .order("created_at", { ascending: false })
 
-  if (error) {
-    console.error("Erro ao pesquisar produtos:", error)
+    if (error) {
+      console.error("[v0] Supabase search error:", error)
+      return []
+    }
+
+    console.log("[v0] Search successful, products found:", products?.length || 0)
+    return products || []
+  } catch (error) {
+    console.error("[v0] Exception in searchProductsClient:", error)
     return []
   }
-
-  return products || []
 }
 
 // Calcular estoque total de um produto
