@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/hooks/use-toast"
 import type { ProductWithSizes } from "@/lib/supabase/types"
 import { updateProduct, updateProductSizeStock, addProductSize, removeProductSize } from "@/lib/supabase/products"
 
@@ -20,6 +21,7 @@ interface AdminProductEditModalProps {
 }
 
 export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdated }: AdminProductEditModalProps) {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [productData, setProductData] = useState({
     name: product.name,
@@ -75,9 +77,24 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
 
     // Update in database
     try {
-      await updateProductSizeStock(product.id, size, newStock)
+      console.log("[v0] Updating size stock:", { productId: product.id, size, newStock })
+      const success = await updateProductSizeStock(product.id, size, newStock)
+
+      if (success) {
+        toast({
+          title: "Estoque atualizado",
+          description: `Tamanho ${size} agora tem ${newStock} unidades`,
+        })
+      } else {
+        throw new Error("Failed to update stock")
+      }
     } catch (error) {
       console.error("Erro ao atualizar estoque:", error)
+      toast({
+        title: "Erro ao atualizar estoque",
+        description: "Tente novamente ou verifique suas permissões",
+        variant: "destructive",
+      })
       // Revert local state on error
       setSizes(sizes)
     }
@@ -87,7 +104,9 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
     if (!newSize.trim() || newSizeStock < 0) return
 
     try {
+      console.log("[v0] Adding new size:", { productId: product.id, size: newSize.trim(), stock: newSizeStock })
       const success = await addProductSize(product.id, newSize.trim(), newSizeStock)
+
       if (success) {
         setSizes([
           ...sizes,
@@ -101,20 +120,44 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         ])
         setNewSize("")
         setNewSizeStock(0)
+        toast({
+          title: "Tamanho adicionado",
+          description: `Tamanho ${newSize.trim()} foi adicionado com sucesso`,
+        })
+      } else {
+        throw new Error("Failed to add size")
       }
     } catch (error) {
       console.error("Erro ao adicionar tamanho:", error)
+      toast({
+        title: "Erro ao adicionar tamanho",
+        description: "Tente novamente ou verifique suas permissões",
+        variant: "destructive",
+      })
     }
   }
 
   const handleRemoveSize = async (size: string) => {
     try {
+      console.log("[v0] Removing size:", { productId: product.id, size })
       const success = await removeProductSize(product.id, size)
+
       if (success) {
         setSizes(sizes.filter((s) => s.size !== size))
+        toast({
+          title: "Tamanho removido",
+          description: `Tamanho ${size} foi removido com sucesso`,
+        })
+      } else {
+        throw new Error("Failed to remove size")
       }
     } catch (error) {
       console.error("Erro ao remover tamanho:", error)
+      toast({
+        title: "Erro ao remover tamanho",
+        description: "Tente novamente ou verifique suas permissões",
+        variant: "destructive",
+      })
     }
   }
 
@@ -137,6 +180,8 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
   const handleSaveProduct = async () => {
     setLoading(true)
     try {
+      console.log("[v0] Updating product:", { productId: product.id, updates: productData })
+
       const success = await updateProduct(product.id, {
         name: productData.name,
         description: productData.description,
@@ -150,14 +195,22 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
       })
 
       if (success) {
+        toast({
+          title: "Produto atualizado",
+          description: "As alterações foram salvas com sucesso",
+        })
         onProductUpdated()
         onClose()
       } else {
-        alert("Erro ao salvar produto. Tente novamente.")
+        throw new Error("Failed to update product")
       }
     } catch (error) {
       console.error("Erro ao salvar produto:", error)
-      alert("Erro ao salvar produto. Tente novamente.")
+      toast({
+        title: "Erro ao salvar produto",
+        description: "Verifique suas permissões ou tente novamente",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
