@@ -39,13 +39,16 @@ export async function updateProductAction(
 
     const supabase = createAdminClient()
 
+    const processedUpdates = {
+      ...updates,
+      original_price: updates.original_price === 0 ? null : updates.original_price,
+      updated_at: new Date().toISOString(),
+    }
+
     // Update the product
     const { data, error } = await supabase
       .from("products")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update(processedUpdates)
       .eq("id", productId)
       .select()
       .single()
