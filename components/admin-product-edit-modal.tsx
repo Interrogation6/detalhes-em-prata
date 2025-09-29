@@ -11,7 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import type { ProductWithSizes } from "@/lib/supabase/types"
-import { updateProduct, updateProductSizeStock, addProductSize, removeProductSize } from "@/lib/supabase/products"
+import {
+  updateProductAction,
+  updateProductSizeStockAction,
+  addProductSizeAction,
+  removeProductSizeAction,
+} from "@/app/actions/products"
 
 interface AdminProductEditModalProps {
   product: ProductWithSizes
@@ -75,24 +80,22 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
     updatedSizes[sizeIndex] = { ...updatedSizes[sizeIndex], stock: newStock }
     setSizes(updatedSizes)
 
-    // Update in database
     try {
-      console.log("[v0] Updating size stock:", { productId: product.id, size, newStock })
-      const success = await updateProductSizeStock(product.id, size, newStock)
+      const result = await updateProductSizeStockAction(product.id, size, newStock)
 
-      if (success) {
+      if (result.success) {
         toast({
           title: "Estoque atualizado",
           description: `Tamanho ${size} agora tem ${newStock} unidades`,
         })
       } else {
-        throw new Error("Failed to update stock")
+        throw new Error(result.error || "Failed to update stock")
       }
     } catch (error) {
       console.error("Erro ao atualizar estoque:", error)
       toast({
         title: "Erro ao atualizar estoque",
-        description: "Tente novamente ou verifique suas permissões",
+        description: error instanceof Error ? error.message : "Tente novamente",
         variant: "destructive",
       })
       // Revert local state on error
@@ -104,10 +107,9 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
     if (!newSize.trim() || newSizeStock < 0) return
 
     try {
-      console.log("[v0] Adding new size:", { productId: product.id, size: newSize.trim(), stock: newSizeStock })
-      const success = await addProductSize(product.id, newSize.trim(), newSizeStock)
+      const result = await addProductSizeAction(product.id, newSize.trim(), newSizeStock)
 
-      if (success) {
+      if (result.success) {
         setSizes([
           ...sizes,
           {
@@ -125,13 +127,13 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
           description: `Tamanho ${newSize.trim()} foi adicionado com sucesso`,
         })
       } else {
-        throw new Error("Failed to add size")
+        throw new Error(result.error || "Failed to add size")
       }
     } catch (error) {
       console.error("Erro ao adicionar tamanho:", error)
       toast({
         title: "Erro ao adicionar tamanho",
-        description: "Tente novamente ou verifique suas permissões",
+        description: error instanceof Error ? error.message : "Tente novamente",
         variant: "destructive",
       })
     }
@@ -139,23 +141,22 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
 
   const handleRemoveSize = async (size: string) => {
     try {
-      console.log("[v0] Removing size:", { productId: product.id, size })
-      const success = await removeProductSize(product.id, size)
+      const result = await removeProductSizeAction(product.id, size)
 
-      if (success) {
+      if (result.success) {
         setSizes(sizes.filter((s) => s.size !== size))
         toast({
           title: "Tamanho removido",
           description: `Tamanho ${size} foi removido com sucesso`,
         })
       } else {
-        throw new Error("Failed to remove size")
+        throw new Error(result.error || "Failed to remove size")
       }
     } catch (error) {
       console.error("Erro ao remover tamanho:", error)
       toast({
         title: "Erro ao remover tamanho",
-        description: "Tente novamente ou verifique suas permissões",
+        description: error instanceof Error ? error.message : "Tente novamente",
         variant: "destructive",
       })
     }
@@ -180,9 +181,7 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
   const handleSaveProduct = async () => {
     setLoading(true)
     try {
-      console.log("[v0] Updating product:", { productId: product.id, updates: productData })
-
-      const success = await updateProduct(product.id, {
+      const result = await updateProductAction(product.id, {
         name: productData.name,
         description: productData.description,
         details: productData.details,
@@ -191,12 +190,9 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         is_on_sale: productData.is_on_sale,
         stock: productData.stock,
         category: productData.category,
-        material: productData.material,
       })
 
-      console.log("[v0] Update result:", success)
-
-      if (success) {
+      if (result.success) {
         toast({
           title: "Produto atualizado",
           description: "As alterações foram salvas com sucesso",
@@ -204,17 +200,13 @@ export function AdminProductEditModal({ product, isOpen, onClose, onProductUpdat
         onProductUpdated()
         onClose()
       } else {
-        toast({
-          title: "Erro ao salvar produto",
-          description: "Você precisa estar logado para editar produtos. Verifique o console para mais detalhes.",
-          variant: "destructive",
-        })
+        throw new Error(result.error || "Failed to update product")
       }
     } catch (error) {
-      console.error("[v0] Error in handleSaveProduct:", error)
+      console.error("Erro ao salvar produto:", error)
       toast({
         title: "Erro ao salvar produto",
-        description: "Ocorreu um erro inesperado. Verifique o console para detalhes.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
         variant: "destructive",
       })
     } finally {
